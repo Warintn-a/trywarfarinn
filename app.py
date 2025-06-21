@@ -1,14 +1,11 @@
 from flask import Flask, request, abort
 from linebot.v3 import WebhookHandler
-from linebot.v3.messaging import (
-    Configuration, ApiClient, MessagingApi, CarouselColumn, CarouselTemplate, TemplateMessage,
-    TextMessage, ReplyMessageRequest, MessageAction
-)
+from linebot.v3.messaging import (Configuration, ApiClient, MessagingApi,TextMessage, ReplyMessageRequest)
 from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from linebot.v3.exceptions import InvalidSignatureError
 import os
 from datetime import datetime, timedelta
-from linebot.v3.messaging import FlexMessage
+from linebot.v3.messaging import FlexMessage, ReplyMessageRequest
 
 app = Flask(__name__)
 
@@ -97,27 +94,39 @@ from linebot.v3.messaging import FlexMessage
 def send_supplement_flex(reply_token):
     flex_content = {
         "type": "bubble",
-        "body": {
+        "size": "mega",
+        "header": {
             "type": "box",
             "layout": "vertical",
             "contents": [
-                {"type": "text", "text": "🌿 โปรดเลือกสมุนไพร/อาหารเสริมที่ผู้ป่วยใช้อยู่", "wrap": True},
+                {"type": "text", "text": "🌿 สมุนไพร/อาหารเสริม", "weight": "bold", "size": "lg"}
+            ]
+        },
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "md",
+            "contents": [
+                {"type": "text", "text": "ผู้ป่วยใช้สิ่งใดบ้าง?", "wrap": True, "size": "md"},
                 {
                     "type": "box",
                     "layout": "vertical",
                     "spacing": "sm",
                     "contents": [
-                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "ไม่ได้ใช้", "text": "ไม่ได้ใช้"}},
-                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "กระเทียม", "text": "กระเทียม"}},
-                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "ใบแปะก๊วย", "text": "ใบแปะก๊วย"}},
-                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "โสม", "text": "โสม"}},
-                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "ขมิ้น", "text": "ขมิ้น"}},
-                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "น้ำมันปลา", "text": "น้ำมันปลา"}},
-                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "ใช้หลายชนิด", "text": "ใช้หลายชนิด"}},
-                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "สมุนไพร/อาหารเสริมชนิดอื่นๆ", "text": "สมุนไพร/อาหารเสริมชนิดอื่นๆ"}}
+                        {"type": "button", "style": "primary", "height": "sm", "color": "#84C1FF",
+                         "action": {"type": "message", "label": "ไม่ได้ใช้", "text": "ไม่ได้ใช้"}},
+                        *[
+                            {"type": "button", "style": "primary", "height": "sm", "color": "#AEC6CF",
+                             "action": {"type": "message", "label": herb, "text": herb}}
+                            for herb in ["กระเทียม", "ใบแปะก๊วย", "โสม", "ขมิ้น", "น้ำมันปลา", "ใช้หลายชนิด", "สมุนไพร/อาหารเสริมชนิดอื่นๆ"]
+                        ]
                     ]
                 }
             ]
+        },
+        "styles": {
+            "header": {"backgroundColor": "#D0E6FF"},
+            "body": {"backgroundColor": "#FFFFFF"}
         }
     }
 
@@ -127,7 +136,6 @@ def send_supplement_flex(reply_token):
             messages=[FlexMessage(alt_text="เลือกสมุนไพร/อาหารเสริม", contents=flex_content)]
         )
     )
-
 
 
 
@@ -180,7 +188,7 @@ def handle_message(event):
                 return
 
             elif step == "ask_bleeding":
-                if text.lower() not in ["yes", "no"]:
+                if text.lower().strip(".") not in ["yes", "no"]:
                     reply = "❌ ตอบว่า yes หรือ no เท่านั้น"
                     messaging_api.reply_message(
                         ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=reply)])
