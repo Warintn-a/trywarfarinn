@@ -815,7 +815,8 @@ def get_followup_text(inr):
 # --------------------------
 # ส่ง carousel เลือกสมุนไพร
 # --------------------------
-def send_supplement_carousel(event, messaging_api):
+def send_supplement_carousel(event):
+    global messaging_api  
     columns = [
         CarouselColumn(
             title="เลือกสมุนไพร/อาหารเสริม",
