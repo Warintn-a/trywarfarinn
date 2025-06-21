@@ -46,9 +46,14 @@ def handle_message(event):
 def home():
     return "LINE bot is running!"
 
+@app.route("/")
+def home():
+    return "✅ LINE Bot is ready to receive Webhook"
+
 # ✅ ส่วนนี้สำคัญมากสำหรับ Render:
 import os
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
