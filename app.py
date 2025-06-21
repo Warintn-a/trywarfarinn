@@ -5,10 +5,9 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from linebot.v3.exceptions import InvalidSignatureError
 import os
 from datetime import datetime, timedelta
-from linebot.v3.messaging import FlexMessage, ReplyMessageRequest
-from linebot.v3.messaging import FlexContainer
+from linebot.v3.messaging import FlexMessage
 from linebot.v3.messaging.models import FlexContainer
-from linebot.v3.messaging.models.utils import dict_to_flex_container
+
 
 app = Flask(__name__)
 
@@ -131,7 +130,7 @@ def send_supplement_flex(reply_token):
         }
     }
 
-    flex_container = dict_to_flex_container(flex_content)
+    flex_container = FlexContainer.from_dict(flex_content)
 
     messaging_api.reply_message(
         ReplyMessageRequest(
@@ -139,6 +138,7 @@ def send_supplement_flex(reply_token):
             messages=[FlexMessage(alt_text="เลือกสมุนไพร/อาหารเสริม", contents=flex_container)]
         )
     )
+
 
 
 
