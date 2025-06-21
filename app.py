@@ -843,8 +843,8 @@ def send_supplement_carousel(event, messaging_api):
                 MessageAction(label="ใช้หลายชนิด", text="ใช้หลายชนิด")
             ]
         )
-        
     ]
+
     messaging_api.reply_message(
         ReplyMessageRequest(
             reply_token=event.reply_token,
