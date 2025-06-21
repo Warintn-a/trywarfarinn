@@ -10,6 +10,7 @@ import os
 
 app = Flask(__name__)
 
+# ✅ ดึงค่าจาก Environment Variables
 channel_secret = os.getenv("LINE_CHANNEL_SECRET")
 access_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
@@ -41,6 +42,9 @@ def handle_message(event):
             )
         )
 
-if __name__ == "__main__":
-    app.run()
+# ✅ ส่วนนี้สำคัญมากสำหรับ Render:
+import os
 
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
