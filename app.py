@@ -8,6 +8,7 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from linebot.v3.exceptions import InvalidSignatureError
 import os
 from datetime import datetime, timedelta
+from linebot.v3.messaging import QuickReply, QuickReplyItem
 
 app = Flask(__name__)
 
@@ -89,48 +90,33 @@ def get_followup_text(inr):
     else:
         return ""
 
-def send_supplement_carousel(reply_token):
-    global messaging_api
-    columns = [
-        CarouselColumn(
-            title="เลือกสมุนไพร/อาหารเสริม",
-            text="ผู้ป่วยใช้สิ่งใดบ้าง?",
-            actions=[
-                MessageAction(label="ไม่ได้ใช้", text="ไม่ได้ใช้"),
-                MessageAction(label="กระเทียม", text="กระเทียม"),
-                MessageAction(label="ใบแปะก๊วย", text="ใบแปะก๊วย")
-            ]
-        ),
-        CarouselColumn(
-            title="เลือกสมุนไพร/อาหารเสริม",
-            text="ผู้ป่วยใช้สิ่งใดบ้าง?",
-            actions=[
-                MessageAction(label="โสม", text="โสม"),
-                MessageAction(label="ขมิ้น", text="ขมิ้น"),
-                MessageAction(label="น้ำมันปลา", text="น้ำมันปลา")
-            ]
-        ),
-        CarouselColumn(
-            title="เลือกสมุนไพร/อาหารเสริม",
-            text="ผู้ป่วยใช้สิ่งใดบ้าง?",
-            actions=[
-                MessageAction(label="สมุนไพร/อาหารเสริมชนิดอื่นๆ", text="สมุนไพร/อาหารเสริมชนิดอื่นๆ"),
-                MessageAction(label="ใช้หลายชนิด", text="ใช้หลายชนิด")
-            ]
-        )
+def send_supplement_quick_reply(reply_token):
+
+    actions = [
+        MessageAction(label="ไม่ได้ใช้", text="ไม่ได้ใช้"),
+        MessageAction(label="กระเทียม", text="กระเทียม"),
+        MessageAction(label="ใบแปะก๊วย", text="ใบแปะก๊วย"),
+        MessageAction(label="โสม", text="โสม"),
+        MessageAction(label="ขมิ้น", text="ขมิ้น"),
+        MessageAction(label="น้ำมันปลา", text="น้ำมันปลา"),
+        MessageAction(label="ใช้หลายชนิด", text="ใช้หลายชนิด"),
+        MessageAction(label="สมุนไพร/อาหารเสริมชนิดอื่นๆ", text="สมุนไพร/อาหารเสริมชนิดอื่นๆ")
     ]
+
+    quick_reply_items = [QuickReplyItem(action=a) for a in actions]
 
     messaging_api.reply_message(
         ReplyMessageRequest(
-            reply_token=event.reply_token,
+            reply_token=reply_token,
             messages=[
-                TemplateMessage(
-                    alt_text="เลือกสมุนไพร/อาหารเสริม",
-                    template=CarouselTemplate(columns=columns)
+                TextMessage(
+                    text="🌿 โปรดเลือกสมุนไพร/อาหารเสริมที่ผู้ป่วยใช้อยู่",
+                    quick_reply=QuickReply(items=quick_reply_items)
                 )
             ]
         )
     )
+
 
 @handler.add(MessageEvent, message=TextMessageContent)
 def handle_message(event):
@@ -189,7 +175,7 @@ def handle_message(event):
                     return
                 session["bleeding"] = text.lower()
                 session["step"] = "choose_supplement"
-                send_supplement_carousel(reply_token)
+                send_supplement_quick_reply(reply_token)
                 return
 
 
