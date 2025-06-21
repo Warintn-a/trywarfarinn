@@ -89,7 +89,7 @@ def get_followup_text(inr):
     else:
         return ""
 
-def send_supplement_carousel(event):
+def send_supplement_carousel(reply_token):
     global messaging_api
     columns = [
         CarouselColumn(
@@ -189,8 +189,9 @@ def handle_message(event):
                     return
                 session["bleeding"] = text.lower()
                 session["step"] = "choose_supplement"
-                send_supplement_carousel(event)
+                send_supplement_carousel(reply_token)
                 return
+
 
 
             elif step == "choose_supplement":
