@@ -8,7 +8,7 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from linebot.v3.exceptions import InvalidSignatureError
 import os
 from datetime import datetime, timedelta
-from linebot.v3.messaging import FlexMessage, BubbleContainer, BoxComponent, TextComponent, ButtonComponent, Action
+from linebot.v3.messaging import FlexMessage
 
 app = Flask(__name__)
 
@@ -92,54 +92,42 @@ def get_followup_text(inr):
 
 
 
+from linebot.v3.messaging import FlexMessage
+
 def send_supplement_flex(reply_token):
-    herbs = [
-        {"label": "ไม่ได้ใช้", "text": "ไม่ได้ใช้"},
-        {"label": "กระเทียม", "text": "กระเทียม"},
-        {"label": "ใบแปะก๊วย", "text": "ใบแปะก๊วย"},
-        {"label": "โสม", "text": "โสม"},
-        {"label": "ขมิ้น", "text": "ขมิ้น"},
-        {"label": "น้ำมันปลา", "text": "น้ำมันปลา"},
-        {"label": "ใช้หลายชนิด", "text": "ใช้หลายชนิด"},
-        {"label": "สมุนไพร/อาหารเสริมชนิดอื่นๆ", "text": "สมุนไพร/อาหารเสริมชนิดอื่นๆ"},
-    ]
-
-    buttons = [
-        ButtonComponent(
-            action=MessageAction(label=herb["label"], text=herb["text"]),
-            height="sm",
-            style="primary" if herb["text"] == "ไม่ได้ใช้" else "secondary"
-        )
-        for herb in herbs
-    ]
-
-    box = BoxComponent(
-        layout="vertical",
-        spacing="sm",
-        contents=buttons
-    )
-
-    body = BoxComponent(
-        layout="vertical",
-        contents=[
-            TextComponent(text="🌿 โปรดเลือกสมุนไพร/อาหารเสริมที่ผู้ป่วยใช้อยู่", weight="bold", wrap=True),
-            box
-        ]
-    )
-
-    bubble = BubbleContainer(body=body)
-
-    flex_message = FlexMessage(
-        alt_text="เลือกสมุนไพร/อาหารเสริม",
-        contents=bubble
-    )
+    flex_content = {
+        "type": "bubble",
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+                {"type": "text", "text": "🌿 โปรดเลือกสมุนไพร/อาหารเสริมที่ผู้ป่วยใช้อยู่", "wrap": True},
+                {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "sm",
+                    "contents": [
+                        {"type": "button", "style": "primary", "action": {"type": "message", "label": "ไม่ได้ใช้", "text": "ไม่ได้ใช้"}},
+                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "กระเทียม", "text": "กระเทียม"}},
+                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "ใบแปะก๊วย", "text": "ใบแปะก๊วย"}},
+                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "โสม", "text": "โสม"}},
+                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "ขมิ้น", "text": "ขมิ้น"}},
+                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "น้ำมันปลา", "text": "น้ำมันปลา"}},
+                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "ใช้หลายชนิด", "text": "ใช้หลายชนิด"}},
+                        {"type": "button", "style": "secondary", "action": {"type": "message", "label": "สมุนไพร/อาหารเสริมชนิดอื่นๆ", "text": "สมุนไพร/อาหารเสริมชนิดอื่นๆ"}}
+                    ]
+                }
+            ]
+        }
+    }
 
     messaging_api.reply_message(
         ReplyMessageRequest(
             reply_token=reply_token,
-            messages=[flex_message]
+            messages=[FlexMessage(alt_text="เลือกสมุนไพร/อาหารเสริม", contents=flex_content)]
         )
     )
+
 
 
 
