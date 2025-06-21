@@ -1,4 +1,4 @@
-from flask import Flask, request, abort
+ffrom flask import Flask, request, abort
 from linebot.v3 import WebhookHandler
 from linebot.v3.messaging import (
     Configuration, ApiClient, MessagingApi,
@@ -42,18 +42,12 @@ def handle_message(event):
             )
         )
 
-@app.route('/')
-def home():
-    return "LINE bot is running!"
-
+# ✅ Route หลักแสดงว่าเซิร์ฟเวอร์รันอยู่
 @app.route("/")
 def home():
     return "✅ LINE Bot is ready to receive Webhook"
 
-# ✅ ส่วนนี้สำคัญมากสำหรับ Render:
-import os
-
+# ✅ รันด้วย PORT และ HOST ที่ Render ต้องการ
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-
