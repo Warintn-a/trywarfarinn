@@ -43,6 +43,9 @@ def handle_message(event):
         )
 
 # ✅ ส่วนนี้สำคัญมากสำหรับ Render:
+@app.route('/')
+def home():
+    return "LINE bot is running!"
 import os
 
 if __name__ == "__main__":
