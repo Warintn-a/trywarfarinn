@@ -1409,8 +1409,9 @@ def handle_message(event: MessageEvent):
     # --------------------------
     if user_id in user_sessions:
                 session = user_sessions[user_id]  # ✅ เว้นบรรทัดด้วย indent 4 ช่องหรือ tab
-    if session.get("flow") == "warfarin":
-        step = session.get("step")
+        if session.get("flow") == "warfarin":
+            step = session.get("step")
+
         if step == "ask_inr":
             try:
                 session["inr"] = float(text)
