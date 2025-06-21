@@ -1,4 +1,4 @@
-ffrom flask import Flask, request, abort
+from flask import Flask, request, abort
 from linebot.v3 import WebhookHandler
 from linebot.v3.messaging import (
     Configuration, ApiClient, MessagingApi,
