@@ -413,11 +413,13 @@ logging.basicConfig(
 
 app = Flask(__name__)
 
-channel_secret = os.getenv("LINE_CHANNEL_SECRET")
-access_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
+
+LINE_CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
+LINE_CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET")
 
 if not LINE_CHANNEL_ACCESS_TOKEN or not LINE_CHANNEL_SECRET:
     raise ValueError("Missing LINE_CHANNEL_ACCESS_TOKEN or LINE_CHANNEL_SECRET")
+
 
 configuration = Configuration(access_token=access_token)
 api_client = ApiClient(configuration)
