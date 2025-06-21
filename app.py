@@ -147,7 +147,7 @@ def handle_message(event):
         messaging_api.reply_message(
             ReplyMessageRequest(
                 reply_token=reply_token,
-                messages=[TextMessage(text="🦢 กรุณาใส่ค่า INR (เช่น 2.5)")]
+                messages=[TextMessage(text="🧪 กรุณาใส่ค่า INR (เช่น 2.5)")]
             )
         )
         return
@@ -191,6 +191,7 @@ def handle_message(event):
                 session["step"] = "choose_supplement"
                 send_supplement_carousel(event)
                 return
+
 
             elif step == "choose_supplement":
                 if text == "ไม่ได้ใช้":
