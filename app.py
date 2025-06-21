@@ -6,6 +6,9 @@ from linebot.v3.exceptions import InvalidSignatureError
 import os
 from datetime import datetime, timedelta
 from linebot.v3.messaging import FlexMessage, ReplyMessageRequest
+from linebot.v3.messaging import FlexContainer
+from linebot.v3.messaging.models import FlexContainer
+from linebot.v3.messaging.models.utils import dict_to_flex_container
 
 app = Flask(__name__)
 
@@ -89,8 +92,6 @@ def get_followup_text(inr):
 
 
 
-from linebot.v3.messaging import FlexMessage
-
 def send_supplement_flex(reply_token):
     flex_content = {
         "type": "bubble",
@@ -130,10 +131,12 @@ def send_supplement_flex(reply_token):
         }
     }
 
+    flex_container = dict_to_flex_container(flex_content)
+
     messaging_api.reply_message(
         ReplyMessageRequest(
             reply_token=reply_token,
-            messages=[FlexMessage(alt_text="เลือกสมุนไพร/อาหารเสริม", contents=flex_content)]
+            messages=[FlexMessage(alt_text="เลือกสมุนไพร/อาหารเสริม", contents=flex_container)]
         )
     )
 
