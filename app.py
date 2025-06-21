@@ -8,7 +8,7 @@ from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from linebot.v3.exceptions import InvalidSignatureError
 import os
 from datetime import datetime, timedelta
-from linebot.v3.messaging import QuickReply, QuickReplyItem
+from linebot.v3.messaging import FlexMessage, BubbleContainer, BoxComponent, TextComponent, ButtonComponent, Action
 
 app = Flask(__name__)
 
@@ -90,32 +90,57 @@ def get_followup_text(inr):
     else:
         return ""
 
-def send_supplement_quick_reply(reply_token):
 
-    actions = [
-        MessageAction(label="ไม่ได้ใช้", text="ไม่ได้ใช้"),
-        MessageAction(label="กระเทียม", text="กระเทียม"),
-        MessageAction(label="ใบแปะก๊วย", text="ใบแปะก๊วย"),
-        MessageAction(label="โสม", text="โสม"),
-        MessageAction(label="ขมิ้น", text="ขมิ้น"),
-        MessageAction(label="น้ำมันปลา", text="น้ำมันปลา"),
-        MessageAction(label="ใช้หลายชนิด", text="ใช้หลายชนิด"),
-        MessageAction(label="สมุนไพร/อาหารเสริมชนิดอื่นๆ", text="สมุนไพร/อาหารเสริมชนิดอื่นๆ")
+
+def send_supplement_flex(reply_token):
+    herbs = [
+        {"label": "ไม่ได้ใช้", "text": "ไม่ได้ใช้"},
+        {"label": "กระเทียม", "text": "กระเทียม"},
+        {"label": "ใบแปะก๊วย", "text": "ใบแปะก๊วย"},
+        {"label": "โสม", "text": "โสม"},
+        {"label": "ขมิ้น", "text": "ขมิ้น"},
+        {"label": "น้ำมันปลา", "text": "น้ำมันปลา"},
+        {"label": "ใช้หลายชนิด", "text": "ใช้หลายชนิด"},
+        {"label": "สมุนไพร/อาหารเสริมชนิดอื่นๆ", "text": "สมุนไพร/อาหารเสริมชนิดอื่นๆ"},
     ]
 
-    quick_reply_items = [QuickReplyItem(action=a) for a in actions]
+    buttons = [
+        ButtonComponent(
+            action=MessageAction(label=herb["label"], text=herb["text"]),
+            height="sm",
+            style="primary" if herb["text"] == "ไม่ได้ใช้" else "secondary"
+        )
+        for herb in herbs
+    ]
+
+    box = BoxComponent(
+        layout="vertical",
+        spacing="sm",
+        contents=buttons
+    )
+
+    body = BoxComponent(
+        layout="vertical",
+        contents=[
+            TextComponent(text="🌿 โปรดเลือกสมุนไพร/อาหารเสริมที่ผู้ป่วยใช้อยู่", weight="bold", wrap=True),
+            box
+        ]
+    )
+
+    bubble = BubbleContainer(body=body)
+
+    flex_message = FlexMessage(
+        alt_text="เลือกสมุนไพร/อาหารเสริม",
+        contents=bubble
+    )
 
     messaging_api.reply_message(
         ReplyMessageRequest(
             reply_token=reply_token,
-            messages=[
-                TextMessage(
-                    text="🌿 โปรดเลือกสมุนไพร/อาหารเสริมที่ผู้ป่วยใช้อยู่",
-                    quick_reply=QuickReply(items=quick_reply_items)
-                )
-            ]
+            messages=[flex_message]
         )
     )
+
 
 
 @handler.add(MessageEvent, message=TextMessageContent)
@@ -175,10 +200,8 @@ def handle_message(event):
                     return
                 session["bleeding"] = text.lower()
                 session["step"] = "choose_supplement"
-                send_supplement_quick_reply(reply_token)
+                send_supplement_flex(reply_token)
                 return
-
-
 
             elif step == "choose_supplement":
                 if text == "ไม่ได้ใช้":
