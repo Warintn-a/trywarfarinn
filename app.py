@@ -7,6 +7,7 @@ from linebot.v3.webhook import WebhookHandler
 from linebot.v3.exceptions import InvalidSignatureError
 from linebot.v3.webhooks import MessageEvent, TextMessageContent
 from linebot.models import QuickReplyButton, PostbackAction
+from linebot.v3.exceptions import InvalidSignatureError
 import os
 import re
 import math
@@ -412,16 +413,16 @@ logging.basicConfig(
 
 app = Flask(__name__)
 
-LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
-LINE_CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
+channel_secret = os.getenv("LINE_CHANNEL_SECRET")
+access_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
 
 if not LINE_CHANNEL_ACCESS_TOKEN or not LINE_CHANNEL_SECRET:
     raise ValueError("Missing LINE_CHANNEL_ACCESS_TOKEN or LINE_CHANNEL_SECRET")
 
-configuration = Configuration(access_token=LINE_CHANNEL_ACCESS_TOKEN)
+configuration = Configuration(access_token=access_token)
 api_client = ApiClient(configuration)
 messaging_api = MessagingApi(api_client)
-handler = WebhookHandler(LINE_CHANNEL_SECRET)
+handler = WebhookHandler(channel_secret)
 
 user_drug_selection = {}
 user_sessions = {}
@@ -653,19 +654,16 @@ SPECIAL_DRUGS = {
 def home():
     return 'LINE Bot is running!'
 
-@app.route("/callback", methods=['POST'])
+@app.route("/callback", methods=["POST"])
 def callback():
-    signature = request.headers.get('X-Line-Signature')
+    signature = request.headers.get("X-Line-Signature")
     body = request.get_data(as_text=True)
 
     try:
         handler.handle(body, signature)
     except InvalidSignatureError:
         abort(400)
-    except Exception as e:
-        logging.info(f"❌ Exception occurred: {e}")
-        abort(400)
-    return 'OK'
+    return "OK"
 
 def send_drug_selection(event):
     carousel1 = CarouselTemplate(columns=[
@@ -1409,7 +1407,7 @@ def handle_message(event: MessageEvent):
     # ดำเนิน Warfarin flow
     # --------------------------
     if user_id in user_sessions:
-    	session = user_sessions[user_id]
+                session = user_sessions[user_id]  # ✅ เว้นบรรทัดด้วย indent 4 ช่องหรือ tab
     if session.get("flow") == "warfarin":
         step = session.get("step")
         if step == "ask_inr":
@@ -1656,8 +1654,11 @@ def handle_message(event: MessageEvent):
         )
         return
         
+@app.route("/")
+def home():
+    return "✅ LINE Bot is ready to receive Webhook"
 
+# ✅ รันด้วย PORT และ HOST ที่ Render ต้องการ
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-    
