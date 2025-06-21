@@ -815,7 +815,7 @@ def get_followup_text(inr):
 # --------------------------
 # ส่ง carousel เลือกสมุนไพร
 # --------------------------
-def send_supplement_carousel(event):
+def send_supplement_carousel(event, messaging_api):
     columns = [
         CarouselColumn(
             title="เลือกสมุนไพร/อาหารเสริม",
@@ -1443,9 +1443,8 @@ def handle_message(event: MessageEvent):
                 return
             session["bleeding"] = text.lower()
             session["step"] = "choose_supplement"
-            send_supplement_carousel(event)
+            send_supplement_carousel(event, messaging_api)
             return
-        
         
 
         elif step == "choose_supplement":
