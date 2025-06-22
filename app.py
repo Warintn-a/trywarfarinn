@@ -85,7 +85,7 @@ def get_followup_text(inr):
     days = get_inr_followup(inr)
     if days:
         date = (datetime.now() + timedelta(days=days)).strftime("%-d %B %Y")
-        return f"🗕️ คำแนะนำ: ควรตรวจ INR ภายใน {days} วัน\n📌 วันที่ควรตรวจ: {date}"
+        return f"📅  คำแนะนำ: ควรตรวจ INR ภายใน {days} วัน\n📌 วันที่ควรตรวจ: {date}"
     else:
         return ""
 
@@ -138,8 +138,57 @@ def send_supplement_flex(reply_token):
             messages=[FlexMessage(alt_text="เลือกสมุนไพร/อาหารเสริม", contents=flex_container)]
         )
     )
-
-
+def send_interaction_flex(reply_token):
+    interaction_drugs = [
+        "Amiodarone", "Metronidazole", "Trimethoprim/Sulfamethoxazole",
+        "Fluconazole", "Erythromycin", "NSAIDs", "Aspirin"
+    ]
+    flex_content = {
+        "type": "bubble",
+        "size": "mega",
+        "header": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [{"type": "text", "text": "💊 ยาที่อาจมีปฏิกิริยารุนแรงกับ Warfarin", "weight": "bold", "size": "lg"}]
+        },
+        "body": {
+            "type": "box",
+            "layout": "vertical",
+            "spacing": "md",
+            "contents": [
+                {"type": "text", "text": "ผู้ป่วยได้รับยาใดบ้าง?", "wrap": True, "size": "md"},
+                {
+                    "type": "box",
+                    "layout": "vertical",
+                    "spacing": "sm",
+                    "contents": [
+                        {"type": "button", "style": "primary", "height": "sm", "color": "#84C1FF",
+                         "action": {"type": "message", "label": "ไม่ได้ใช้", "text": "ไม่ได้ใช้"}}
+                    ] + [
+                        {"type": "button", "style": "primary", "height": "sm", "color": "#FFD700",
+                         "action": {"type": "message", "label": drug, "text": drug}}
+                        for drug in interaction_drugs
+                    ] + [
+                        {"type": "button", "style": "primary", "height": "sm", "color": "#FFB6C1",
+                         "action": {"type": "message", "label": "ใช้หลายชนิด", "text": "ใช้หลายชนิด"}},
+                        {"type": "button", "style": "primary", "height": "sm", "color": "#D8BFD8",
+                         "action": {"type": "message", "label": "ยาชนิดอื่นๆ", "text": "ยาชนิดอื่นๆ"}}
+                    ]
+                }
+            ]
+        },
+        "styles": {
+            "header": {"backgroundColor": "#F9E79F"},
+            "body": {"backgroundColor": "#FFFFFF"}
+        }
+    }
+    flex_container = FlexContainer.from_dict(flex_content)
+    messaging_api.reply_message(
+        ReplyMessageRequest(
+            reply_token=reply_token,
+            messages=[FlexMessage(alt_text="เลือกยาที่มีปฏิกิริยา", contents=flex_container)]
+        )
+    )
 
 
 @handler.add(MessageEvent, message=TextMessageContent)
@@ -202,35 +251,59 @@ def handle_message(event):
                 send_supplement_flex(reply_token)
                 return
 
+            
+
             elif step == "choose_supplement":
                 if text == "ไม่ได้ใช้":
-                    result = calculate_warfarin(session["inr"], session["twd"], session["bleeding"], "")
+                    session["supplement"] = ""
+                else:
+                    session["supplement"] = text
+                session["step"] = "choose_interaction"
+                send_interaction_flex(reply_token)
+                return
+
+            elif step == "choose_interaction":
+                if text == "ไม่ได้ใช้":
+                    interaction_note = ""
+                    supplement = session.get("supplement", "")
+                    result = calculate_warfarin(session["inr"], session["twd"], session["bleeding"], supplement)
+                    final_result = f"{result}{interaction_note}"
                     user_sessions.pop(user_id, None)
                     messaging_api.reply_message(
-                        ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=result)])
+                        ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=final_result)])
                     )
-                elif text in ["ใช้หลายชนิด", "สมุนไพร/อาหารเสริมชนิดอื่นๆ"]:
-                    session["step"] = "ask_supplement"
-                    reply = "🌿 โปรดพิมพ์ชื่อสมุนไพรหรืออาหารเสริมที่ใช้อยู่ เช่น กระเทียม, โสม, ขมิ้น"
+                    return
+
+                elif text in ["ใช้หลายชนิด", "ยาชนิดอื่นๆ"]:
+                    session["step"] = "ask_interaction"
+                    reply = "💊 โปรดพิมพ์ชื่อยาที่ใช้อยู่ เช่น Amiodarone, NSAIDs"
                     messaging_api.reply_message(
                         ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=reply)])
                     )
+                    return
+
                 else:
-                    result = calculate_warfarin(session["inr"], session["twd"], session["bleeding"], text)
+                    interaction_note = f"\n⚠️ พบการใช้ยา: {text} ซึ่งอาจมีปฏิกิริยากับ Warfarin"
+                    supplement = session.get("supplement", "")
+                    result = calculate_warfarin(session["inr"], session["twd"], session["bleeding"], supplement)
+                    final_result = f"{result}{interaction_note}"
                     user_sessions.pop(user_id, None)
                     messaging_api.reply_message(
-                        ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=result)])
+                        ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=final_result)])
                     )
-                return
+                    return
 
-            elif step == "ask_supplement":
-                supplement = text.strip()
+            elif step == "ask_interaction":
+                interaction_note = f"\n⚠️ พบการใช้ยา: {text.strip()} ซึ่งอาจมีปฏิกิริยากับ Warfarin"
+                supplement = session.get("supplement", "")
                 result = calculate_warfarin(session["inr"], session["twd"], session["bleeding"], supplement)
+                final_result = f"{result}{interaction_note}"
                 user_sessions.pop(user_id, None)
                 messaging_api.reply_message(
-                    ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=result)])
+                    ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=final_result)])
                 )
                 return
+
 
     if user_id not in user_sessions and user_id not in user_drug_selection:
         messaging_api.reply_message(
