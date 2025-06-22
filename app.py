@@ -247,6 +247,16 @@ def handle_message(event):
                     )
                     return
                 session["bleeding"] = text.lower()
+                if text.lower().strip(".") == "yes":
+                # ✅ มี bleeding → แสดงผลทันทีและจบ flow
+                    result = calculate_warfarin(session["inr"], session["twd"], session["bleeding"])
+                    user_sessions.pop(user_id, None)
+                    messaging_api.reply_message(
+                        ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=result)])
+                )
+                return
+                   
+                    # ถ้าไม่มี bleeding → ไปถามเรื่องสมุนไพรต่อ
                 session["step"] = "choose_supplement"
                 send_supplement_flex(reply_token)
                 return
