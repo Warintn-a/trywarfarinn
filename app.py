@@ -254,11 +254,11 @@ def handle_message(event):
                     messaging_api.reply_message(
                         ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=result)])
                 )
-                return
-                   
+                
+                else:   
                     # ถ้าไม่มี bleeding → ไปถามเรื่องสมุนไพรต่อ
-                session["step"] = "choose_supplement"
-                send_supplement_flex(reply_token)
+                    session["step"] = "choose_supplement"
+                    send_supplement_flex(reply_token)
                 return
 
             
