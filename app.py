@@ -267,7 +267,7 @@ def handle_message(event):
                     interaction_note = ""
                     supplement = session.get("supplement", "")
                     result = calculate_warfarin(session["inr"], session["twd"], session["bleeding"], supplement)
-                    final_result = f"{result}{interaction_note}"
+                    final_result = f"{result.split('\n\n')[0]}{interaction_note}\n\n{result.split('\n\n')[1]}"
                     user_sessions.pop(user_id, None)
                     messaging_api.reply_message(
                         ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=final_result)])
@@ -286,7 +286,7 @@ def handle_message(event):
                     interaction_note = f"\n⚠️ พบการใช้ยา: {text} ซึ่งอาจมีปฏิกิริยากับ Warfarin"
                     supplement = session.get("supplement", "")
                     result = calculate_warfarin(session["inr"], session["twd"], session["bleeding"], supplement)
-                    final_result = f"{result}{interaction_note}"
+                    final_result = f"{result.split('\n\n')[0]}{interaction_note}\n\n{result.split('\n\n')[1]}"
                     user_sessions.pop(user_id, None)
                     messaging_api.reply_message(
                         ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=final_result)])
@@ -297,7 +297,7 @@ def handle_message(event):
                 interaction_note = f"\n⚠️ พบการใช้ยา: {text.strip()} ซึ่งอาจมีปฏิกิริยากับ Warfarin"
                 supplement = session.get("supplement", "")
                 result = calculate_warfarin(session["inr"], session["twd"], session["bleeding"], supplement)
-                final_result = f"{result}{interaction_note}"
+                final_result = f"{result.split('\n\n')[0]}{interaction_note}\n\n{result.split('\n\n')[1]}"
                 user_sessions.pop(user_id, None)
                 messaging_api.reply_message(
                     ReplyMessageRequest(reply_token=reply_token, messages=[TextMessage(text=final_result)])
@@ -320,4 +320,4 @@ def home():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=port) 
