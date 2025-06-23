@@ -293,6 +293,14 @@ def handle_message(event):
                     send_interaction_flex(reply_token)
                     return
 
+            elif step == "ask_custom_supplement":
+                session["supplement"] = text
+                session["step"] = "choose_interaction"
+                send_interaction_flex(reply_token)
+                return
+
+
+
             elif step == "choose_interaction":
                 if text == "ไม่ได้ใช้":
                     interaction_note = ""
